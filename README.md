@@ -28,7 +28,15 @@
   $ docker-compose -v # 查看安装版本，测试是否正确安装
   ```
 
-  
+## 补充
 
+docker正常安装启动出现如下错误：
 
+![](./image/wrong.png)
+
+解决方法为：
+
+编辑 `/etc/sysconfig/docker` ， 更改 `--selinux-enabled` 为 `--selinux-enabled=false` ，如下图所示：
+
+![](./image/solve.png)
 
