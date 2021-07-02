@@ -1,0 +1,38 @@
+version: "3"
+services:
+  milvus_cpu_1.0.0:
+    hostname: milvus_cpu_1.0.0
+    # restart: always
+    image: milvusdb/milvus:1.0.0-cpu-d030521-1ea92e
+    container_name: milvus_cpu_1.0.0
+    ports:
+      - "19530:19530"
+      - "8080:8080"
+    volumes:
+      - ./milvus/db:/var/lib/milvus/db
+      - ./milvus/conf:/var/lib/milvus/conf
+      - ./milvus/logs:/var/lib/milvus/logs
+      - ./milvus/wal:/var/lib/milvus/wal
+
+  pic-search-webserver:
+    hostname: pic-search-webserver
+    # restart: always
+    image: milvusbootcamp/pic-search-webserver:1.0
+    container_name: zilliz_search_images_demo
+    ports:
+      - "35000:5000"
+    volumes:
+      - ./picture:/tmp/picture
+    environment:
+      - DATA_PATH=/tmp/images-data
+      - MILVUS_HOST=your~ip
+
+  pic-search-webclient:
+    hostname: pic-search-webclient
+    # restart: always
+    image: milvusbootcamp/pic-search-webclient:1.0
+    container_name: zilliz_search_images_demo_web
+    ports:
+      - "8001:80"
+    environment:
+      - API_URL=http://your~ip:35000
