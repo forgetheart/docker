@@ -1,0 +1,62 @@
+version: '3'
+services:
+  db: # 这里只是给每个容器单独配置一个名称
+    image: mariadb # 具体的镜像名称，可以使用“:”指定镜像的版本
+    container_name: mariadb
+    restart: always # 重启的选项，分为no、on-failure、on-failure:x、always、unless-stopped，具体可以自行搜索查看区别
+    expose: 
+    # expose仅将指定的端口暴露给links的容器，而不对宿主机开放。
+    # 和ports的区别在于，ports可以映射宿主机别的端口到容器中。
+     - "3306"
+    volumes:
+    # volumes指的是将宿主机的路径映射到容器中的指定位置
+     - ./db:/var/lib/mysql
+    environment:
+    # environment可以对容器创建指定多个环境变量
+     - TZ=Asia/Shanghai # 设置时区
+     - MYSQL_ROOT_PASSWORD=asfrbsd.5) # 这里配置root密码
+     - MYSQL_DATABASE=nextcloud
+     - MYSQL_USER=nextcloud # 这里配置一个非root账户给nextcloud使用
+     - MYSQL_PASSWORD=nextcloud@2021 # 这里配置上面那个账号的密码
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci # 设置编码
+
+  nextcloud:
+    image: nextcloud:stable-fpm
+    container_name: nextcloud
+    restart: always
+    expose:
+     - "9000"
+    volumes:
+     - ./nextcloud/html:/var/www/html
+    links:
+    # links将容器与当前容器链接起来，以使得当前容器可以访问目标容器expose的端口
+    # 格式为 容器的原名:映射到当前容器中的名称
+     - db:db
+    depends_on:
+    # 依赖的容器列表，只有这些容器都成功启动了，才会启动当前容器
+     - db
+
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: always
+    # privileged: true
+    ports:
+    # ports可将容器内的端口映射到宿主机上
+     - 8088:80
+    volumes:
+     - ./nextcloud/html:/var/www/html
+     - ./nginx/conf.d:/etc/nginx/conf.d:ro
+     - ./nginx/log/:/var/log/nginx/
+    links:
+     - nextcloud:nextcloud
+    depends_on:
+     - nextcloud
+
+  onlyoffice:
+    image: onlyoffice/documentserver
+    container_name: onlyoffice
+    restart: always
+    ports:
+    # ports可将容器内的端口映射到宿主机上
+     - 8089:80
