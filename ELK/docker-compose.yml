@@ -1,0 +1,40 @@
+version: '2'
+services:
+  elasticsearch:
+    hostname: elasticsearch
+    image: elasticsearch:7.4.2  #镜像
+    container_name: elasticsearch  #定义容器名称
+    # restart: always  #开机启动，失败也会一直重启
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" #设置使用jvm内存大小
+    volumes:
+      - ./es/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    expose:
+      - 9200
+    ports:
+      - 9200:9200
+
+  kibana:
+    hostname: kibana
+    image: kibana:7.4.2
+    container_name: kibana
+    # restart: always
+    links:
+      - "elasticsearch"
+    volumes:
+      - ./kibana/plugins/:/usr/share/kibana/plugins/
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+    ports:
+      - 5601:5601
+
+  logstash:
+    hostname: logstash
+    image: logstash:7.4.2
+    container_name: logstash
+    # restart: always
+    volumes:
+      - ./logstash/logstash-springboot.conf:/usr/share/logstash/pipeline/logstash.conf #挂载logstash的配置文件
+    links:
+      - "elasticsearch" #可以用es这个域名访问elasticsearch服务
+    ports:
+      - 4560:4560
